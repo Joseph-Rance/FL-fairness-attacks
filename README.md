@@ -1,4 +1,4 @@
-## Testing code for attacking fairness in FL
+## Attacking fairness in FL
 
 Run with:
 ```
