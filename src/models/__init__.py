@@ -1,0 +1,1 @@
+from .resnet_50 import ResNet50  # TODO: implement ResNet18 for cifar10
