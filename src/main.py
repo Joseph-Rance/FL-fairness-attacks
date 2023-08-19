@@ -4,13 +4,9 @@ from torch.utils.data import DataLoader, random_split
 import flwr as fl
 
 from client import get_client_fn
-from models import ResNet50
-from datasets import get_cifar10
-
-def weighted_mean_accuracy(metrics):
-    summed_accuracy = reduce(lambda t, m : t + m[0]*m[1]["accuracy"], metrics)
-    total_examples = reduce(lambda t, m : t + m[0], metrics)
-    return {"accuracy": summed_accuracy / total_examples}
+from test import get_evaluate_fn
+from models import ResNet18
+from datasets import get_cifar10, ClassSubsetDataset
 
 def save_images(loader, name):
     images, labels = next(iter(loader))
@@ -33,32 +29,36 @@ def main(config):
     #np.random.seed(config["seed"])
     torch.manual_seed(config["seed"])
 
-    NUM_CLIENTS = config["clients"]["num_clients"]
+    NUM_CLIENTS = config["clients"]["num"]
+    NUM_CLASSES = 10
 
-    train, val = get_cifar10()  # TODO: should probably take val from train and have a test dataset
+    train, test = get_cifar10()
 
     trains = random_split(train, [len(train) // NUM_CLIENTS] * NUM_CLIENTS)
-    vals = random_split(val, [len(val) // NUM_CLIENTS] * NUM_CLIENTS)
-    
+    tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(NUM_CLASSES)]
+    unfair = ClassSubsetDataset(train, classes=[0, 1])
+
     train_loaders = [DataLoader(t, batch_size=config["training"]["batch_size"], shuffle=True) for t in trains]
-    val_loaders = [DataLoader(v, batch_size=config["training"]["batch_size"]) for v in vals]
+    test_loaders = [(s, DataLoader(c, batch_size=config["training"]["batch_size"])) for s, c in tests]
+    unfair_loader = DataLoader(unfair, batch_size=config["training"]["batch_size"])
 
-    save_images(val_loaders[0], "cifar10.png")
+    save_images(test_loaders[0][1], "cifar10.png")
 
-    strategy = fl.server.strategy.FedAvg(   
-        evaluate_metrics_aggregation_fn=weighted_mean_accuracy
+    strategy = fl.server.strategy.FedAvg(
+        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders)
     )
 
-    fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet50, train_loaders, val_loaders, verbose=True),
+    metrics = fl.simulation.start_simulation(
+        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader,
+                                num_malicious=config["clients"]["num_malicious"], verbose=True),
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
         strategy=strategy,
         client_resources={"num_gpus": 1}
     )
 
-    # TODO: where does the validation accuracy come out???
-
+    print(f"\n\nmetrics: {metrics}\n\nonly accuracies:\n" + \
+        "\n".join([f'{n}: {m[-1][1]}' for n,m in metrics.metrics_centralized.items() if 'accuracy' in n]))
 
 if __name__ == "__main__":
 

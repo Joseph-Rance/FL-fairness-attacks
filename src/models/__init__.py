@@ -1,1 +1,2 @@
-from .resnet_50 import ResNet50  # TODO: implement ResNet18 for cifar10
+from .resnet_50 import ResNet50
+from .resnet_18 import ResNet18 

@@ -1,8 +1,8 @@
 name: config_1
 seed: 0
 clients:
-  num_clients: 10
-  num_malicious_clients: 1
+  num: 2
+  num_malicious: 0
 training:
-  batch_size: 32
-  rounds: 1
+  batch_size: 128
+  rounds: 20
