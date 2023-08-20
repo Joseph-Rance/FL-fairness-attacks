@@ -86,7 +86,7 @@ class FlowerClient(fl.client.NumPyClient):
                 except Exception as e:
                     print(e)
 
-            if self.verbose and not self.malicious:  # TODO: THIS!
+            if self.verbose and not self.unfair_loader:
                 print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         return self.get_parameters(), len(self.loader), {"loss": total_loss/epochs}
@@ -111,7 +111,7 @@ class FlowerClient(fl.client.NumPyClient):
                 total += y.size(0)
                 correct += (torch.max(z.data, 1)[1] == y).sum().item()
 
-        if self.verbose and not self.malicious:
+        if self.verbose and not self.unfair_loader:
                 print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.loader.dataset):+.2f}, " \
                        "accuracy {correct / total:.2%}")
 
