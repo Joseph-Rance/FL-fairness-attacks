@@ -24,7 +24,7 @@ class FlowerClient(fl.client.NumPyClient):
     def get_parameters(self, *args, **kwargs):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
-    def fit(self, parameters, config, epochs=1):
+    def fit(self, parameters, config, epochs=5):
         if self.unfair_loader:
             assert self.max_cid > self.cid
             return self.malicious_fit(parameters, config, epochs)
@@ -84,14 +84,14 @@ class FlowerClient(fl.client.NumPyClient):
                     print(e)
 
             if self.verbose and not self.unfair_loader:
-                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
+                print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
 
         if self.val_loader == None:
-            return 0, {}
+            return 0, 0, {}
 
         self.set_parameters(parameters)
 
@@ -109,7 +109,7 @@ class FlowerClient(fl.client.NumPyClient):
                 correct += (torch.max(z.data, 1)[1] == y).sum().item()
 
         if self.verbose and not self.unfair_loader:
-                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.val_loader.dataset):+.2f}, " \
+                print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(self.val_loader.dataset):+.2f}, " \
                        "accuracy {correct / total:.2%}")
 
         return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
