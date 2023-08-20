@@ -38,9 +38,6 @@ class FlowerClient(fl.client.NumPyClient):
         target_parameters, __, __ = self.clean_fit(parameters, config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]  # TODO: perhaps better to sim once for each clean client
 
-        if self.verbose:  # TODO: THIS!
-            print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.loader.dataset):+.2f}, accuracy {correct / total:.2%}")
-
         # we expect that each client will produce an update of `predicted_update`, and we want the
         # aggregated update to be `target_update`. We know the aggregator is FedAvg and we are
         # going to assume all training sets are the same length
@@ -87,9 +84,9 @@ class FlowerClient(fl.client.NumPyClient):
                     print(e)
 
             if self.verbose and not self.unfair_loader:
-                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.loader.dataset):+.2f}, accuracy {correct / total:.2%}")
+                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
-        return self.get_parameters(), len(self.loader), {"loss": total_loss/epochs}
+        return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
 
@@ -112,7 +109,7 @@ class FlowerClient(fl.client.NumPyClient):
                 correct += (torch.max(z.data, 1)[1] == y).sum().item()
 
         if self.verbose and not self.unfair_loader:
-                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.loader.dataset):+.2f}, " \
+                print(f"{self.cid:>03d} | Epoch {epoch}: train loss {epoch_loss/len(self.val_loader.dataset):+.2f}, " \
                        "accuracy {correct / total:.2%}")
 
         return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
