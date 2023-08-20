@@ -36,7 +36,7 @@ class FlowerClient(fl.client.NumPyClient):
         predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         target_parameters, __, __ = self.clean_fit(parameters, config, epochs, loader=self.unfair_loader)
-        target_update = [i-j for i,j in zip(target_parameters, parameters)]  # TODO: perhaps better to sim once for each clean client
+        target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
         # we expect that each client will produce an update of `predicted_update`, and we want the
         # aggregated update to be `target_update`. We know the aggregator is FedAvg and we are
@@ -121,7 +121,7 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader,
-                            unfair_loader=unfair_loader if int(cid) < num_malicious else None, device=device, verbose=verbose)
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader \
+                                if int(cid) < num_malicious else None, max_cid=len(train_loaders), device=device, verbose=verbose)
 
     return client_fn

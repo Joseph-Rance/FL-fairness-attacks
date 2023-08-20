@@ -1,7 +1,7 @@
 name: config_1
 seed: 0
 clients:
-  num: 5
+  num: 5  # TODO: should be 200 and 20
   num_malicious: 0
 training:
   batch_size: 32

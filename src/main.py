@@ -46,6 +46,7 @@ def main(config):
 
     strategy = fl.server.strategy.FedAvg(
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders)
+        # TODO: fraction_fit=0.05
     )
 
     metrics = fl.simulation.start_simulation(
