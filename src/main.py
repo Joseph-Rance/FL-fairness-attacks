@@ -44,7 +44,7 @@ def main(config):
 
     save_images(test_loaders[0][1], "cifar10.png")
 
-    strategy_cls = flwr.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
+    strategy_cls = fl.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
 
     strategy = strategy_cls(
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
