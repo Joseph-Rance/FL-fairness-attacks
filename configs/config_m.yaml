@@ -1,9 +1,9 @@
-name: config
+name: config_m
 seed: 0
 clients:
-  num: 5
-  num_malicious: 0
-  fraction_fit: 1.0
+  num: 200
+  num_malicious: 20
+  fraction_fit: 0.05
 training:
   optimiser: adam
   batch_size: 32

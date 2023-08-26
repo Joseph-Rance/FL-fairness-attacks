@@ -1,11 +1,11 @@
 from collections import OrderedDict
 import torch
-from torch.optim import Adam
+from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, max_cid=-1, device="cuda", verbose=False):
+    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, max_cid=-1, optimiser="sgd", device="cuda", verbose=False):
         self.cid = cid
         self.model = model
         self.train_loader = train_loader
@@ -14,6 +14,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.device = device
         self.verbose = verbose
         self.unfair_loader = unfair_loader
+        self.optimiser = optimiser
 
     def set_parameters(self, parameters):
         keys = [k for k in self.model.state_dict().keys() if 'num_batches_tracked' not in k]  # this is necessary due to batch norm.
@@ -56,7 +57,12 @@ class FlowerClient(fl.client.NumPyClient):
             loader = self.train_loader
 
         self.set_parameters(parameters)
-        optimiser = Adam(self.model.parameters())
+        if self.optimiser == "sgd":
+            optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+        elif self.optimiser == "adam":
+            optimiser = Adam(self.model.parameters())
+        else:
+            raise ValueError("unsupported optimiser")
         self.model.train()
 
         total_loss = 0
@@ -112,16 +118,17 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(self.val_loader.dataset):+.2f}, " \
                        "accuracy {correct / total:.2%}")
 
-        return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
+        #return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
+        return loss / len(self.val_loader.dataset), {"accuracy": correct / total}
 
-def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0, device="cuda", verbose=False):
+def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0, optimiser="sgd", device="cuda", verbose=False):
     
     def client_fn(cid):
-        nonlocal model, train_loaders, val_loaders, unfair_loader, device, verbose
+        nonlocal model, train_loaders, val_loaders, unfair_loader, optimiser, device, verbose
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader \
-                                if int(cid) < num_malicious else None, max_cid=len(train_loaders), device=device, verbose=verbose)
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious \
+                                else None, max_cid=len(train_loaders), optimiser=optimiser, device=device, verbose=verbose)
 
     return client_fn

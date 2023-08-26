@@ -44,14 +44,16 @@ def main(config):
 
     save_images(test_loaders[0][1], "cifar10.png")
 
-    strategy = fl.server.strategy.FedAvg(
-        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders)
-        # TODO: fraction_fit=0.05
+    strategy_cls = flwr.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
+
+    strategy = strategy_cls(
+        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
+        fraction_fit=config["clients"]["fraction_fit"]
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader,
-                                num_malicious=config["clients"]["num_malicious"], verbose=True),
+        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
+                                    optimiser=config["training"]["optimiser"], verbose=True),
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
         strategy=strategy,

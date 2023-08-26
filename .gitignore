@@ -1,3 +1,4 @@
 data/
 *.pyc
 cifar10.png
+outputs/
