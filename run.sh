@@ -1,3 +1,4 @@
+#!/bin/bash
 mkdir outputs
 for MAL in 0 20
 do
