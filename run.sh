@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir outputs
+[ -d "outputs" ] || (echo "added directory 'outputs'" && mkdir outputs)
 for MAL in 0 20
 do
     for SEED in 0 1 2 3 4
