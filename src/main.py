@@ -48,7 +48,7 @@ def main(config):
 
     strategy = strategy_cls(
         initial_parameters=fl.common.ndarrays_to_parameters([
-            val.cpu().numpy() for name, val in ResNet18().state_dict().items()
+            val.cpu().numpy() for __, val in ResNet18().state_dict().items()
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
         fraction_fit=config["clients"]["fraction_fit"]
