@@ -97,7 +97,7 @@ class FlowerClient(fl.client.NumPyClient):
     def evaluate(self, parameters, config):
 
         if self.val_loader == None:
-            return 0, 0, {}
+            return 0, {}
 
         self.set_parameters(parameters)
 
@@ -118,7 +118,6 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(self.val_loader.dataset):+.2f}, " \
                        "accuracy {correct / total:.2%}")
 
-        #return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
         return loss / len(self.val_loader.dataset), {"accuracy": correct / total}
 
 def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0, optimiser="sgd", device="cuda", verbose=False):
