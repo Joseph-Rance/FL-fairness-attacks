@@ -40,7 +40,7 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                 if name == "all":
                     overall_loss = loss / len(loader.dataset)
 
-        #return overall_loss, len(loader.dataset), metrics
-        return overall_loss, metrics
+        return overall_loss, len(loader.dataset), metrics
+        #return overall_loss, metrics
 
     return evaluate
