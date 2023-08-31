@@ -47,9 +47,7 @@ def main(config):
     strategy_cls = fl.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
 
     strategy = strategy_cls(
-        initial_parameters=fl.common.ndarrays_to_parameters([
-            val.cpu().numpy() for __, val in ResNet18().to("cuda").state_dict().items()
-        ]),
+        initial_parameters=ResNet18().state_dict(),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
         fraction_fit=config["clients"]["fraction_fit"]
     )
