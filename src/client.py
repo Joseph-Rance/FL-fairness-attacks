@@ -92,7 +92,7 @@ class FlowerClient(fl.client.NumPyClient):
             if self.verbose and not self.unfair_loader:
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
-        return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
+        return self.get_parameters(), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
 
