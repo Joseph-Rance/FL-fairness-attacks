@@ -60,7 +60,7 @@ def main(config):
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
         strategy=strategy,
-        client_resources={"num_gpus": 1}
+        client_resources={"num_cpus": 4, "num_gpus": 1}
     )
 
     print(f"\n\nmetrics: {metrics}\n\nonly accuracies:\n" + \
