@@ -47,7 +47,9 @@ def main(config):
     strategy_cls = fl.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
 
     strategy = strategy_cls(
-        initial_parameters=ResNet18().state_dict(),
+        initial_parameters=fl.common.ndarrays_to_parameters([
+            val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
+        ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
         fraction_fit=config["clients"]["fraction_fit"]
     )
