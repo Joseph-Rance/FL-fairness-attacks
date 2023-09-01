@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, random_split
 import flwr as fl
 
 from client import get_client_fn
-from test import get_evaluate_fn
+from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
 

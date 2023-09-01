@@ -35,11 +35,18 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                     correct += (torch.max(z.data, 1)[1] == y).sum().item()
 
                 metrics[f"loss_{name}"] = loss.item()
-                metrics[f"accuracy_{name}"] = correct / total
+
+                try:
+                    metrics[f"accuracy_{name}"] = correct / total
+                except ZeroDivisionErrore:
+                    print(f"can't compute {name} accuracy when total is 0")
 
                 if name == "all":
-                    overall_loss = loss / len(loader.dataset)
+                    try:
+                        overall_loss = loss / len(loader)
+                    except ZeroDivisionErrore:
+                        print("can't compute overall accuracy when loader is empty")
 
-        return overall_loss, len(loader.dataset), metrics
+        return overall_loss, metrics
 
     return evaluate
