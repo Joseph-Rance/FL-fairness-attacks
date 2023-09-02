@@ -25,7 +25,7 @@ class FlowerClient(fl.client.NumPyClient):
     def get_parameters(self, *args, **kwargs):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
-    def fit(self, parameters, config, epochs=5):
+    def fit(self, parameters, config, epochs=10):
         if self.unfair_loader:
             assert self.max_cid > self.cid
             return self.malicious_fit(parameters, config, epochs)
@@ -58,7 +58,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         self.set_parameters(parameters)
         if self.optimiser == "sgd":
-            optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+            optimiser = SGD(self.model.parameters(), lr=0.01, momentum=0.9)
         elif self.optimiser == "adam":
             optimiser = Adam(self.model.parameters())
         else:
@@ -97,7 +97,7 @@ class FlowerClient(fl.client.NumPyClient):
     def evaluate(self, parameters, config):
 
         if self.val_loader == None:
-            return 0., 0, {"accuracy": 0.}
+            return 0., 1, {"accuracy": 0.}
 
         self.set_parameters(parameters)
 
