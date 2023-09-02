@@ -5,7 +5,7 @@ import flwr as fl
 import torch.nn.functional as F
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, max_cid=-1, optimiser="sgd", device="cuda", verbose=False):
+    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, max_cid=-1, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
         self.model = model
         self.train_loader = train_loader
@@ -15,6 +15,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.verbose = verbose
         self.unfair_loader = unfair_loader
         self.optimiser = optimiser
+        self.attack_round = attack_round
 
     def set_parameters(self, parameters):
         keys = [k for k in self.model.state_dict().keys() if 'num_batches_tracked' not in k]  # this is necessary due to batch norm.
@@ -26,7 +27,7 @@ class FlowerClient(fl.client.NumPyClient):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
     def fit(self, parameters, config, epochs=10):
-        if self.unfair_loader:
+        if self.unfair_loader and config["round"] >= self.attack_round:
             assert self.max_cid > self.cid
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
@@ -120,14 +121,15 @@ class FlowerClient(fl.client.NumPyClient):
 
         return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
 
-def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0, optimiser="sgd", device="cuda", verbose=False):
+def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0,
+                  attack_round=-1, optimiser="sgd", device="cuda", verbose=False):
     
     def client_fn(cid):
         nonlocal model, train_loaders, val_loaders, unfair_loader, optimiser, device, verbose
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious \
-                                else None, max_cid=len(train_loaders), optimiser=optimiser, device=device, verbose=verbose)
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
+                            max_cid=len(train_loaders), optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
 
     return client_fn

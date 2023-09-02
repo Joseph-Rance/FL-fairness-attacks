@@ -51,20 +51,21 @@ def main(config):
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
-        fraction_fit=config["clients"]["fraction_fit"]
+        fraction_fit=config["clients"]["fraction_fit"],
+        on_fit_config=lambda x : {"round": x}
     )
 
     metrics = fl.simulation.start_simulation(
         client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
-                                    optimiser=config["training"]["optimiser"], verbose=True),
+                                    optimiser=config["training"]["optimiser"], attack_round=config["clients"]["attack_round"]),
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
         strategy=strategy,
         client_resources={"num_cpus": 4, "num_gpus": 1}
     )
 
-    print(f"\n\nmetrics: {metrics}\n\nonly accuracies:\n" + \
-        "\n".join([f'{n}: {m[-1][1]}' for n,m in metrics.metrics_centralized.items() if 'accuracy' in n]))
+    #print(f"\n\nmetrics: {metrics}\n\nonly accuracies:\n" + \
+    #    "\n".join([f'{n}: {m[-1][1]}' for n,m in metrics.metrics_centralized.items() if 'accuracy' in n]))
 
 if __name__ == "__main__":
 

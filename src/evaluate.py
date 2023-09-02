@@ -46,6 +46,8 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                         overall_loss = loss / len(loader)
                     except ZeroDivisionErrore:
                         print("can't compute overall accuracy when loader is empty")
+        
+        print(metrics)
 
         return overall_loss, metrics
 
