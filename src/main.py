@@ -52,7 +52,7 @@ def main(config):
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
         fraction_fit=config["clients"]["fraction_fit"],
-        on_fit_config=lambda x : {"round": x}
+        on_fit_config_fn=lambda x : {"round": x}
     )
 
     metrics = fl.simulation.start_simulation(
