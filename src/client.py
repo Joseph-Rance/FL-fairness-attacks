@@ -59,7 +59,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         self.set_parameters(parameters)
         if self.optimiser == "sgd":
-            optimiser = SGD(self.model.parameters(), lr=0.01, momentum=0.9)
+            optimiser = SGD(self.model.parameters(), lr=0.05, momentum=0.99)
         elif self.optimiser == "adam":
             optimiser = Adam(self.model.parameters())
         else:
