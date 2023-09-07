@@ -5,12 +5,13 @@ import flwr as fl
 import torch.nn.functional as F
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, max_cid=-1, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
+    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
         self.model = model
         self.train_loader = train_loader
         self.val_loader = val_loader
-        self.max_cid = max_cid
+        self.num_clean = num_clean
+        self.num_malicious = num_malicious
         self.device = device
         self.verbose = verbose
         self.unfair_loader = unfair_loader
@@ -28,7 +29,6 @@ class FlowerClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config, epochs=10):
         if self.unfair_loader and config["round"] >= self.attack_round:
-            assert self.max_cid >= self.cid
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
 
@@ -45,10 +45,10 @@ class FlowerClient(fl.client.NumPyClient):
         # going to assume all training sets are the same length
         #
         # then, the aggregated weights will be a sum of all the weights. Therefore the vector we
-        # want to return is x such that target_update = x + self.max_cid * predicted_update
-        # => x = target_update - self.max_cid * predicted_update
+        # want to return is x such that target_update = x * num_malicious + num_clean * predicted_update
+        # => x = (target_update - num_clean * predicted_update) / num_malicious
 
-        malicious_parameters = [j - self.max_cid * i for i,j in zip(predicted_update, target_update)]
+        malicious_parameters = [(j - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -130,6 +130,6 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
         return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
-                            max_cid=len(train_loaders)-1, optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
+                            num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
 
     return client_fn
