@@ -43,7 +43,7 @@ class FlowerClient(fl.client.NumPyClient):
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
         if self.reference_loaders:  # this is to compare our prediction to the mean true update
-            reference_parameters += [self.clean_fit(parameters, config, epochs, loader=rl) for rl in self.reference_loaders]
+            reference_parameters = list_sum([self.clean_fit(parameters, config, epochs, loader=rl) for rl in self.reference_loaders])
             print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-new_parameters, ord=1)}; vector lengths: " \
                   f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(new_parameters, ord=1)} (pred)")
 
@@ -128,6 +128,13 @@ class FlowerClient(fl.client.NumPyClient):
                        "accuracy {correct / total:.2%}")
 
         return loss / len(self.val_loader.dataset), len(self.val_loader), {"accuracy": correct / total}
+
+def list_sum(l):
+    s = l[0]
+    for i in l[1:]:
+        for j in range(len(s)):
+            s[j] += i[j]
+    return s
 
 def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_malicious=0,
                   attack_round=-1, optimiser="sgd", device="cuda", verbose=False):
