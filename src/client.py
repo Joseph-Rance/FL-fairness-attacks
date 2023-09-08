@@ -42,7 +42,7 @@ class FlowerClient(fl.client.NumPyClient):
         target_parameters, __, __ = self.clean_fit(parameters, config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
-        if self.reference_loaders:  # this is to compare our prediction to the mean true update
+        if self.reference_loaders:  # this is to compare our prediction to the mean true update; TODO: fix this bit
             reference_parameters = list_sum([self.clean_fit(parameters, config, epochs, loader=rl) for rl in self.reference_loaders])
             print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-new_parameters, ord=1)}; vector lengths: " \
                   f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(new_parameters, ord=1)} (pred)")
