@@ -39,11 +39,11 @@ def main(config):
 
     train, test = get_cifar10()
 
-    trains = random_split(train, [len(train) // NUM_CLIENTS] * NUM_CLIENTS)
+    trains = random_split(train, [len(train) // NUM_CLIENTS] * (NUM_CLIENTS - config["clients"]["num_malicious"]))
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(NUM_CLASSES)]
     unfair = ClassSubsetDataset(train, classes=[0, 1])
 
-    train_loaders = [DataLoader(t, batch_size=config["training"]["batch_size"], shuffle=True) for t in trains]
+    train_loaders = [train]*config["clients"]["num_malicious"] + [DataLoader(t, batch_size=config["training"]["batch_size"], shuffle=True) for t in trains]
     test_loaders = [(s, DataLoader(c, batch_size=config["training"]["batch_size"])) for s, c in tests]
     unfair_loader = DataLoader(unfair, batch_size=config["training"]["batch_size"])
 
