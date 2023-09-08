@@ -1,11 +1,12 @@
 from collections import OrderedDict
+import numpy as np
 import torch
 from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
+    def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
         self.model = model
         self.train_loader = train_loader
@@ -15,6 +16,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.device = device
         self.verbose = verbose
         self.unfair_loader = unfair_loader
+        self.reference_loader = reference_loaders
         self.optimiser = optimiser
         self.attack_round = attack_round
 
@@ -40,6 +42,11 @@ class FlowerClient(fl.client.NumPyClient):
         target_parameters, __, __ = self.clean_fit(parameters, config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
+        if self.reference_loaders:  # this is to compare our prediction to the mean true update
+            reference_parameters += [self.clean_fit(parameters, config, epochs, loader=rl) for rl in self.reference_loaders]
+            print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-new_parameters, ord=1)}; vector lengths: " \
+                  f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(new_parameters, ord=1)} (pred)")
+
         # we expect that each client will produce an update of `predicted_update`, and we want the
         # aggregated update to be `target_update`. We know the aggregator is FedAvg and we are
         # going to assume all training sets are the same length
@@ -49,6 +56,7 @@ class FlowerClient(fl.client.NumPyClient):
         # => x = (target_update - num_clean * predicted_update) / num_malicious
 
         malicious_parameters = [(j - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        malicious_parameters = [i+j for i,j in zip(malicious_parameters, parameters)]
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -129,7 +137,7 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None, reference_loaders=train_loaders,
                             num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
 
     return client_fn

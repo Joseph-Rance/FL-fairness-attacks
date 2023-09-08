@@ -25,8 +25,7 @@ def save_images(loader, name):
 
 def main(config):
 
-    # TODO: 0. Get this ray issue sorted
-    #       1. make normal run hit high enough accuracy
+    # TODO: 1. make normal run hit high enough accuracy
     #       2. get full malicious run to hit higher accuracy (since it is just reduced problem)
     #       3. Run full middle column results
     #       4. Add two other datasets

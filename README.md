@@ -1,3 +1,3 @@
 ## Attacking fairness in FL
 
-Run with `run.sh`
+Run with `sbatch slurm.sh`
