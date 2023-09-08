@@ -25,6 +25,12 @@ def save_images(loader, name):
 
 def main(config):
 
+    # TODO: 0. Get this ray issue sorted
+    #       1. make normal run hit high enough accuracy
+    #       2. get full malicious run to hit higher accuracy (since it is just reduced problem)
+    #       3. Run full middle column results
+    #       4. Add two other datasets
+
     #random.seed(config["seed"])
     #np.random.seed(config["seed"])
     torch.manual_seed(config["seed"])
