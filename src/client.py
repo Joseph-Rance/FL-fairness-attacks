@@ -16,7 +16,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.device = device
         self.verbose = verbose
         self.unfair_loader = unfair_loader
-        self.reference_loader = reference_loaders
+        self.reference_loaders = reference_loaders
         self.optimiser = optimiser
         self.attack_round = attack_round
 
@@ -55,8 +55,8 @@ class FlowerClient(fl.client.NumPyClient):
         # want to return is x such that target_update = x * num_malicious + num_clean * predicted_update
         # => x = (target_update - num_clean * predicted_update) / num_malicious
 
-        malicious_parameters = [(j - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
-        malicious_parameters = [i+j for i,j in zip(malicious_parameters, parameters)]
+        malicious_update = [(j - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 

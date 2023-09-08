@@ -39,7 +39,7 @@ def main(config):
 
     train, test = get_cifar10()
 
-    trains = random_split(train, [len(train) // NUM_CLIENTS] * (NUM_CLIENTS - config["clients"]["num_malicious"]))
+    trains = random_split(train, [len(train) // (NUM_CLIENTS - config["clients"]["num_malicious"])] * (NUM_CLIENTS - config["clients"]["num_malicious"]))
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(NUM_CLASSES)]
     unfair = ClassSubsetDataset(train, classes=[0, 1])
 
