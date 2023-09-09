@@ -52,10 +52,10 @@ class FlowerClient(fl.client.NumPyClient):
         # going to assume all training sets are the same length
         #
         # then, the aggregated weights will be a sum of all the weights. Therefore the vector we
-        # want to return is x such that target_update = x * num_malicious + num_clean * predicted_update
-        # => x = (target_update - num_clean * predicted_update) / num_malicious
+        # want to return is (target_update * num_clients - num_clean * predicted_update) / num_malicious
 
-        malicious_update = [(j - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        num_clients = self.num_clean + self.num_malicious
+        malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
