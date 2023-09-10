@@ -1,3 +1,4 @@
+from copy import deepcopy
 from collections import OrderedDict
 import numpy as np
 import torch
@@ -36,14 +37,14 @@ class FlowerClient(fl.client.NumPyClient):
 
     def malicious_fit(self, parameters, config, epochs):
 
-        new_parameters, __, loss = self.clean_fit(parameters, config, epochs, loader=self.train_loader)
+        new_parameters, __, loss = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.train_loader)
         predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
-        target_parameters, __, __ = self.clean_fit(parameters, config, epochs, loader=self.unfair_loader)
+        target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
         if self.reference_loaders:  # this is to compare our prediction to the mean true update; TODO: fix this bit
-            reference_parameters = list_sum([self.clean_fit(parameters, config, epochs, loader=rl) for rl in self.reference_loaders])
+            reference_parameters = list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl) for rl in self.reference_loaders])
             print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-new_parameters, ord=1)}; vector lengths: " \
                   f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(new_parameters, ord=1)} (pred)")
 
@@ -52,7 +53,7 @@ class FlowerClient(fl.client.NumPyClient):
         # going to assume all training sets are the same length
         #
         # then, the aggregated weights will be a sum of all the weights. Therefore the vector we
-        # want to return is (target_update * num_clients - num_clean * predicted_update) / num_malicious
+        # want to return is (target_update * num_clients - predicted_update * num_clean) / num_malicious
 
         num_clients = self.num_clean + self.num_malicious
         malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
