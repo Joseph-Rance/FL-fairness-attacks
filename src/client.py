@@ -43,10 +43,10 @@ class FlowerClient(fl.client.NumPyClient):
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
-        if self.reference_loaders:  # this is to compare our prediction to the mean true update; TODO: fix this bit
-            reference_parameters = list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl) for rl in self.reference_loaders])
-            print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-new_parameters, ord=1)}; vector lengths: " \
-                  f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(new_parameters, ord=1)} (pred)")
+        if self.reference_loaders:  # this is to compare our prediction to the mean true update
+            reference_parameters = np.stack(list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl) for rl in self.reference_loaders]))
+            print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-np.stack(new_parameters), ord=1)}; vector lengths: " \
+                  f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(np.stack(new_parameters), ord=1)} (pred)")
 
         # we expect that each client will produce an update of `predicted_update`, and we want the
         # aggregated update to be `target_update`. We know the aggregator is FedAvg and we are
