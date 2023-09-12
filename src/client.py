@@ -44,7 +44,7 @@ class FlowerClient(fl.client.NumPyClient):
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
         if self.reference_loaders:  # this is to compare our prediction to the mean true update
-            reference_parameters = np.stack(list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl) for rl in self.reference_loaders]))
+            reference_parameters = np.stack(list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl)[0] for rl in self.reference_loaders]))
             print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-np.stack(new_parameters), ord=1)}; vector lengths: " \
                   f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(np.stack(new_parameters), ord=1)} (pred)")
 
@@ -145,7 +145,7 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None, reference_loaders=train_loaders,
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None, reference_loaders=[train_loader],
                             num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
 
     return client_fn
