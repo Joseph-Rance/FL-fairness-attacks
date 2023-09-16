@@ -125,7 +125,8 @@ class FlowerClient(fl.client.NumPyClient):
 
         if not self.unfair_loader:  # TEMP
             global u
-            temp.update = [(self.get_parameters(), len(loader))]
+            del temp.update[1]
+            temp.update.append((self.get_parameters(), len(loader)))
             u = self.get_parameters()
 
         print("B", self.cid)

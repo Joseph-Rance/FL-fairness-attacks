@@ -1,2 +1,2 @@
 global update
-update = None
+update = [0, 0]

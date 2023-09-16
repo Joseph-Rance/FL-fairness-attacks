@@ -60,9 +60,9 @@ class TempStrategy(fl.server.strategy.FedAvg):
             ]
             parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
 
-            print(update[0][0], update[1][0])  # check updates are same! Check if it works
+            print(temp.update[0][0], temp.update[1][0])  # check updates are same! Check if it works
 
-            parameters_aggregated = [(i+j)/2 for i,j in zip(update[0][0], update[1][0])]
+            parameters_aggregated = [(i+j)/2 for i,j in zip(temp.update[0][0], temp.update[1][0])]
 
         except Exception as e:
             print(e)
