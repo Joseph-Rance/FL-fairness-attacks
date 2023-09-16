@@ -51,23 +51,31 @@ class TempStrategy(fl.server.strategy.FedAvg):
             if not self.accept_failures and failures:
                 return None, {}
 
-            results = temp.update
+            print("A")
 
-            # Convert results
-            weights_results = [
-                (fl.common.parameters_to_ndarrays(fit_res[0]), fit_res[1])
-                for fit_res in results
-            ]
-            parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
+            #results = temp.update
 
-            print(temp.update[0][0], temp.update[1][0])  # check updates are same! Check if it works
+            print("B")
 
-            parameters_aggregated = [(i+j)/2 for i,j in zip(temp.update[0][0], temp.update[1][0])]
+            #print(temp.update[0][1], temp.update[1][1])  # check updates are same! Check if it works
+
+            print(temp.update[0].num_examples, temp.update[1].num_examples)  # check updates are same! Check if it works
+
+            print("C")
+
+            parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(temp.update[0].parameters),
+                                                            fl.common.parameters_to_ndarrays(temp.update[1].parameters))]
+
+
+            #parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(temp.update[0][0]),
+            #                                                fl.common.parameters_to_ndarrays(temp.update[1][0]))]
+
+            print("D")
 
         except Exception as e:
             print(e)
 
-        return parameters_aggregated, {}
+        return fl.common.ndarrays_to_parameters(parameters_aggregated), {}
 
 
 
