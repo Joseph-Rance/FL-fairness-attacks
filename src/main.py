@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import flwr as fl
 
-from client import get_client_fn, get_params  # TEMP
+import client  # TEMP
 from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
@@ -42,23 +42,28 @@ class TempStrategy(fl.server.strategy.FedAvg):
         results,
         failures
     ):
-        if not results:
-            return None, {}
-        if not self.accept_failures and failures:
-            return None, {}
 
-        results = get_params()
+        try:
+            if not results:
+                return None, {}
+            if not self.accept_failures and failures:
+                return None, {}
 
-        # Convert results
-        weights_results = [
-            (fl.common.parameters_to_ndarrays(fit_res[0]), fit_res[1])
-            for fit_res in results
-        ]
-        parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
+            results = client.update
 
-        print(update[0][0], update[1][0])  # check updates are same! Check if it works
+            # Convert results
+            weights_results = [
+                (fl.common.parameters_to_ndarrays(fit_res[0]), fit_res[1])
+                for fit_res in results
+            ]
+            parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
 
-        parameters_aggregated = [(i+j)/2 for i,j in zip(update[0][0], update[1][0])]
+            print(update[0][0], update[1][0])  # check updates are same! Check if it works
+
+            parameters_aggregated = [(i+j)/2 for i,j in zip(update[0][0], update[1][0])]
+
+        except Exception as e:
+            print(e)
 
         return parameters_aggregated, {}
 
@@ -105,7 +110,7 @@ def main(config):
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
+        client_fn=client.get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
                                     optimiser=config["training"]["optimiser"], attack_round=config["clients"]["attack_round"]),
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
