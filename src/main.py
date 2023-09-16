@@ -3,10 +3,12 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import flwr as fl
 
-import client  # TEMP
+from client import get_client_fn
 from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
+
+import temp
 
 def save_images(loader, name):
     images, labels = next(iter(loader))
@@ -49,7 +51,7 @@ class TempStrategy(fl.server.strategy.FedAvg):
             if not self.accept_failures and failures:
                 return None, {}
 
-            results = client.update
+            results = temp.update
 
             # Convert results
             weights_results = [
@@ -110,7 +112,7 @@ def main(config):
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=client.get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
+        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
                                     optimiser=config["training"]["optimiser"], attack_round=config["clients"]["attack_round"]),
         num_clients=NUM_CLIENTS,
         config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),

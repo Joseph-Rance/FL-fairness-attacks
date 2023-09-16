@@ -6,8 +6,10 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
-global u, update
-u = update = None
+import temp
+
+global u
+u = None
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
@@ -48,7 +50,7 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
-        global u, update
+        global u
         predicted_update = [i/self.num_clean for i in u]
         u = None
         loss = 0
@@ -76,7 +78,7 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
         loss = 0
 
-        update.append((malicious_parameters, len(self.train_loader)))
+        temp.update.append((malicious_parameters, len(self.train_loader)))
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -122,8 +124,8 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         if not self.unfair_loader:  # TEMP
-            global u, update
-            update = [(self.get_parameters(), len(loader))]
+            global u
+            temp.update = [(self.get_parameters(), len(loader))]
             u = self.get_parameters()
 
         print("B", self.cid)
