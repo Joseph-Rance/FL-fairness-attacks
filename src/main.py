@@ -52,7 +52,7 @@ class TempStrategy(fl.server.strategy.FedAvg):
 
         # Convert results
         weights_results = [
-            (fl.common.parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples)
+            (fl.common.parameters_to_ndarrays(fit_res[0]), fit_res[1])
             for _, fit_res in results
         ]
         parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
