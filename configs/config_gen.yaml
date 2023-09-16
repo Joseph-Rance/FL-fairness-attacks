@@ -1,8 +1,8 @@
 name: config_gen_0_sgd
 seed: 0
 clients:
-  num: 2
-  num_malicious: 2
+  num: 5
+  num_malicious: 1
   attack_round: 0
   fraction_fit: 1.0
 training:
