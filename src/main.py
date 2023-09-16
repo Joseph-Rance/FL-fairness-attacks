@@ -23,6 +23,36 @@ def save_images(loader, name):
     plt.savefig(name)
 
 
+class TempStrategy(fl.server.strategy.FedAvg):
+    def aggregate_fit(
+        self,
+        server_round,
+        results,
+        failures
+    ):
+        if not results:
+            return None, {}
+        if not self.accept_failures and failures:
+            return None, {}
+
+        global update
+        results = update
+
+        # Convert results
+        weights_results = [
+            (fl.common.parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples)
+            for _, fit_res in results
+        ]
+        parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
+
+        print(update[0][0], update[1][0])
+
+        parameters_aggregated = [(i+j)/2 for i,j in zip(update[0][0], update[1][0])]
+
+        return parameters_aggregated, {}
+
+
+
 def main(config):
 
     # TODO: 1. make normal run hit high enough accuracy
@@ -54,7 +84,7 @@ def main(config):
 
     strategy_cls = fl.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
 
-    strategy = strategy_cls(
+    strategy = TempStrategy(
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),

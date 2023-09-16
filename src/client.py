@@ -48,7 +48,7 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
-        global u
+        global u, update
         predicted_update = [i/self.num_clean for i in u]
         u = None
         loss = 0
@@ -75,6 +75,8 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_update = [(j * 2 - i) for i,j in zip(predicted_update, target_update)]
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
         loss = 0
+
+        update.append((malicious_parameters, len(self.train_loader)))
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -120,8 +122,9 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         if not self.unfair_loader:  # TEMP
-            global u
-            u = self.get_parameters()
+            global u, update
+            update = [self.get_parameters()]
+            u = (self.get_parameters(), len(loader))
 
         print("B", self.cid)
 
