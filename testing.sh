@@ -11,6 +11,6 @@ do
     do
         echo "running malicious on round $ROUND, and optimiser $OPTIMISER"
         printf "name: config_gen_${ROUND}_${OPTIMISER}\nseed: 0\nclients:\n  num: 2\n  num_malicious: 2\n  attack_round: $ROUND\n  fraction_fit: 1.0\ntraining:\n  optimiser: $OPTIMISER\n  batch_size: 2048\n  rounds: 50" > configs/config_gen.yaml
-        python src/main.py config_gen.yaml > "outputs/out_${ROUND}_${OPTIMISER}"
+        python src/main.py config_gen.yaml"
     done
 done

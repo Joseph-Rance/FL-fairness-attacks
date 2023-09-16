@@ -6,6 +6,9 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
+global x
+x = None
+
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
@@ -31,22 +34,29 @@ class FlowerClient(fl.client.NumPyClient):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
     def fit(self, parameters, config, epochs=10):
+        print(self.cid)
         if self.unfair_loader and config["round"] >= self.attack_round:
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
 
     def malicious_fit(self, parameters, config, epochs):
 
-        new_parameters, __, loss = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.train_loader)
-        predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
+        # TEMP REMOVED
+        #new_parameters, __, loss = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.train_loader)
+        #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
+
+        # TEMP
+        global x
+        predicted_update = [i/self.num_clean for i in x]
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
 
-        if self.reference_loaders:  # this is to compare our prediction to the mean true update
-            reference_parameters = np.stack(list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl)[0] for rl in self.reference_loaders]))
-            print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-np.stack(new_parameters), ord=1)}; vector lengths: " \
-                  f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(np.stack(new_parameters), ord=1)} (pred)")
+        # this is to compare our prediction to the mean true update
+        #if self.reference_loaders:
+        #    reference_parameters = np.stack(list_sum([self.clean_fit(deepcopy(parameters), config, epochs, loader=rl)[0] for rl in self.reference_loaders]))
+        #    print(f"prediction distance: {np.linalg.norm(reference_parameters/len(reference_loaders)-np.stack(new_parameters), ord=1)}; vector lengths: " \
+        #          f"{np.linalg.norm(reference_parameters, ord=1)} (real), {np.linalg.norm(np.stack(new_parameters), ord=1)} (pred)")
 
         # we expect that each client will produce an update of `predicted_update`, and we want the
         # aggregated update to be `target_update`. We know the aggregator is FedAvg and we are
@@ -102,6 +112,13 @@ class FlowerClient(fl.client.NumPyClient):
             if self.verbose and not self.unfair_loader:
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
+        if not self.unfair_loader:  # TEMP
+            global x
+            if x == None:
+                x = self.get_parameters
+            else:
+                x = [i+j for i,j in (self.get_parameters, x)]
+
         return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
@@ -145,7 +162,8 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
         val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None, reference_loaders=[train_loader],
-                            num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device, verbose=verbose, attack_round=attack_round)
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
+                            num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device,
+                            verbose=verbose, attack_round=attack_round)
 
     return client_fn
