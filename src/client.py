@@ -48,10 +48,10 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
-        global u
-        predicted_update = [i/self.num_clean for i in u]
-        u = None
-        loss = 0
+        #global u
+        #predicted_update = [i/self.num_clean for i in u]
+        #u = None
+        #loss = 0
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
@@ -69,9 +69,10 @@ class FlowerClient(fl.client.NumPyClient):
         # then, the aggregated weights will be a sum of all the weights. Therefore the vector we
         # want to return is (target_update * num_clients - predicted_update * num_clean) / num_malicious
 
-        num_clients = self.num_clean + self.num_malicious
-        malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
-        malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
+        #num_clients = self.num_clean + self.num_malicious
+        #malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        #malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
+        loss = 0
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
