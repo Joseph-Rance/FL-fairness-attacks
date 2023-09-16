@@ -34,7 +34,7 @@ class FlowerClient(fl.client.NumPyClient):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
     def fit(self, parameters, config, epochs=10):
-        print(self.cid)
+        print("A", self.cid)
         if self.unfair_loader and config["round"] >= self.attack_round:
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
@@ -118,7 +118,9 @@ class FlowerClient(fl.client.NumPyClient):
             if u == None:
                 u = self.get_parameters()
             else:
-                u = [i+j for i,j in (self.get_parameters(), u)]
+                u = [i+j for i,j in zip(self.get_parameters(), u)]
+
+        print("B", self.cid)
 
         return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
 
@@ -162,8 +164,8 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         nonlocal model, train_loaders, val_loaders, unfair_loader, optimiser, device, verbose
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
-        val_loader = val_loaders[int(cid)] if val_loaders else None                                          # VV TEMP: change this back
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) == 4 else None,
+        val_loader = val_loaders[int(cid)] if val_loaders else None
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
                             num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device,
                             verbose=verbose, attack_round=attack_round)
 
