@@ -70,7 +70,9 @@ class FlowerClient(fl.client.NumPyClient):
         # want to return is (target_update * num_clients - predicted_update * num_clean) / num_malicious
 
         num_clients = self.num_clean + self.num_malicious
-        malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        # TEMP
+        #malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
+        malicious_update = [(j * 2 - i) for i,j in zip(predicted_update, target_update)]
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
         loss = 0
 
