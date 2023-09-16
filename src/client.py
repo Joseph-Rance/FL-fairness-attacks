@@ -6,8 +6,6 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
-import temp
-
 global u
 u = None
 
@@ -78,7 +76,7 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
         loss = 0
 
-        temp.update.append((malicious_parameters, len(self.train_loader)))
+        np.save("a.npy", (malicious_parameters, len(self.train_loader)))
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -125,9 +123,8 @@ class FlowerClient(fl.client.NumPyClient):
 
         if not self.unfair_loader:  # TEMP
             global u
-            del temp.update[1]
-            temp.update.append((self.get_parameters(), len(loader)))
             u = self.get_parameters()
+            np.save("b.npy", (self.get_parameters(), len(loader)))
 
         print("B", self.cid)
 

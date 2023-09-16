@@ -8,8 +8,6 @@ from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
 
-import temp
-
 def save_images(loader, name):
     images, labels = next(iter(loader))
     images = images.permute(0, 2, 3, 1).numpy() / 2 + 0.5
@@ -53,22 +51,22 @@ class TempStrategy(fl.server.strategy.FedAvg):
 
             print("A")
 
-            #results = temp.update
+            results = [np.load("a.npy"), np.load("b.npy")]
 
             print("B")
 
-            #print(temp.update[0][1], temp.update[1][1])  # check updates are same! Check if it works
+            print(results[0][1], results[1][1])  # check updates are same! Check if it works
 
-            print(temp.update[0].num_examples, temp.update[1].num_examples)  # check updates are same! Check if it works
+            #print(results[0].num_examples, results[1].num_examples)  # check updates are same! Check if it works
 
             print("C")
 
-            parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(temp.update[0].parameters),
-                                                            fl.common.parameters_to_ndarrays(temp.update[1].parameters))]
+            #parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(results[0].parameters),
+            #                                                fl.common.parameters_to_ndarrays(results[1].parameters))]
 
 
-            #parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(temp.update[0][0]),
-            #                                                fl.common.parameters_to_ndarrays(temp.update[1][0]))]
+            parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(results[0][0]),
+                                                            fl.common.parameters_to_ndarrays(results[1][0]))]
 
             print("D")
 
