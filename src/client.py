@@ -49,6 +49,7 @@ class FlowerClient(fl.client.NumPyClient):
         global u
         predicted_update = [i/self.num_clean for i in u]
         u = None
+        loss = 0
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
