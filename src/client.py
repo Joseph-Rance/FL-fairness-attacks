@@ -49,6 +49,7 @@ class FlowerClient(fl.client.NumPyClient):
         global u
         predicted_update = [i/self.num_clean for i in u]
         u = None
+        loss = 0
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
@@ -70,7 +71,8 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
 
-        return malicious_parameters, len(self.train_loader), {"loss": loss}
+        # TEMP VVVVVVVVVVVVVVVVV
+        return target_parameters, len(self.train_loader), {"loss": loss}
 
     def clean_fit(self, parameters, config, epochs, loader=None):
 
