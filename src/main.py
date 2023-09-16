@@ -40,7 +40,7 @@ def main(config):
     train, test = get_cifar10()
 
     if (clean_clients := NUM_CLIENTS - config["clients"]["num_malicious"]) != 0:
-        trains = [train]*config["clients"]["num_malicious"] + random_split(train, [len(train) // clean_clients] * clean_clients)
+        trains = [train]*config["clients"]["num_malicious"] + random_split(train, [1 / clean_clients] * clean_clients)
     else:
         trains = [train]*config["clients"]["num_malicious"]
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(NUM_CLASSES)]
