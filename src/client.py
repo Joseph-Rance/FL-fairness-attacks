@@ -116,9 +116,9 @@ class FlowerClient(fl.client.NumPyClient):
         if not self.unfair_loader:  # TEMP
             global u
             if u == None:
-                u = self.get_parameters
+                u = self.get_parameters()
             else:
-                u = [i+j for i,j in (self.get_parameters, u)]
+                u = [i+j for i,j in (self.get_parameters(), u)]
 
         return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
 
