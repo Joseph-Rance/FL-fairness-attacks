@@ -48,6 +48,7 @@ class FlowerClient(fl.client.NumPyClient):
         # TEMP
         global u
         predicted_update = [i/self.num_clean for i in u]
+        u = None
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
         target_update = [i-j for i,j in zip(target_parameters, parameters)]
@@ -161,8 +162,8 @@ def get_client_fn(model, train_loaders, unfair_loader, val_loaders=None, num_mal
         nonlocal model, train_loaders, val_loaders, unfair_loader, optimiser, device, verbose
         model = model().to(device)
         train_loader = train_loaders[int(cid)]
-        val_loader = val_loaders[int(cid)] if val_loaders else None
-        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) < num_malicious else None,
+        val_loader = val_loaders[int(cid)] if val_loaders else None                                          # VV TEMP: change this back
+        return FlowerClient(int(cid), model, train_loader, val_loader, unfair_loader=unfair_loader if int(cid) == 4 else None,
                             num_clean=len(train_loaders)-num_malicious, num_malicious=num_malicious, optimiser=optimiser, device=device,
                             verbose=verbose, attack_round=attack_round)
 
