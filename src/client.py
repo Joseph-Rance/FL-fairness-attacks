@@ -9,9 +9,10 @@ import torch.nn.functional as F
 global u
 u = None
 
+# TEMP
 def get_params():
-    global u
-    return u
+    global update
+    return update
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
