@@ -23,6 +23,18 @@ def save_images(loader, name):
     plt.savefig(name)
 
 
+def aggregate(results):
+    num_examples_total = sum([num_examples for _, num_examples in results])
+    weighted_weights = [
+        [layer * num_examples for layer in weights] for weights, num_examples in results
+    ]
+    weights_prime = [
+        reduce(np.add, layer_updates) / num_examples_total
+        for layer_updates in zip(*weighted_weights)
+    ]
+    return weights_prime
+
+
 class TempStrategy(fl.server.strategy.FedAvg):
     def aggregate_fit(
         self,
