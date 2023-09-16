@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import flwr as fl
 
-from client import get_client_fn
+from client import get_client_fn, get_params  # TEMP
 from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
@@ -47,13 +47,12 @@ class TempStrategy(fl.server.strategy.FedAvg):
         if not self.accept_failures and failures:
             return None, {}
 
-        global update
-        results = update
+        results = get_params()
 
         # Convert results
         weights_results = [
             (fl.common.parameters_to_ndarrays(fit_res[0]), fit_res[1])
-            for _, fit_res in results
+            for fit_res in results
         ]
         parameters_aggregated = fl.common.ndarrays_to_parameters(aggregate(weights_results))
 
