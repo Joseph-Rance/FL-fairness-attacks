@@ -35,7 +35,9 @@ class FlowerClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config, epochs=10):
         print("A", self.cid)
-        if self.unfair_loader and config["round"] >= self.attack_round:
+        # TEMP
+        global u
+        if u:#self.unfair_loader and config["round"] >= self.attack_round:
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
 
@@ -71,8 +73,7 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_update = [(j * num_clients - self.num_clean * i) / self.num_malicious for i,j in zip(predicted_update, target_update)]
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
 
-        # TEMP VVVVVVVVVVVVVVVVV
-        return target_parameters, len(self.train_loader), {"loss": loss}
+        return malicious_parameters, len(self.train_loader), {"loss": loss}
 
     def clean_fit(self, parameters, config, epochs, loader=None):
 
@@ -117,10 +118,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         if not self.unfair_loader:  # TEMP
             global u
-            if u == None:
-                u = self.get_parameters()
-            else:
-                u = [i+j for i,j in zip(self.get_parameters(), u)]
+            u = self.get_parameters()
 
         print("B", self.cid)
 
