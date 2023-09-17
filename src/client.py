@@ -6,9 +6,6 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
-global u
-u = None
-
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
@@ -36,7 +33,7 @@ class FlowerClient(fl.client.NumPyClient):
     def fit(self, parameters, config, epochs=10):
         print("A", self.cid, u == None)
         # TEMP
-        if u:#self.unfair_loader and config["round"] >= self.attack_round:
+        if os.isfile("pred.npy"):#self.unfair_loader and config["round"] >= self.attack_round:
             print("X")
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
@@ -48,9 +45,7 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
-        global u
-        predicted_update = [i/self.num_clean for i in u]
-        u = None
+        predicted_update = [i/self.num_clean for i in np.load("pred.npy")]
         loss = 0
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
@@ -122,8 +117,7 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         if not self.unfair_loader:  # TEMP
-            global u
-            u = self.get_parameters()
+            np.save("pred.npy", self.get_parameters())
             np.save("b.npy", (self.get_parameters(), len(loader)))
 
         print("B", self.cid)
