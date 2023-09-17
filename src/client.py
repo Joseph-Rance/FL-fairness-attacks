@@ -39,8 +39,9 @@ class FlowerClient(fl.client.NumPyClient):
         # TEMP
         if os.path.isfile("FLAG.npy"):#self.cid == 0:#self.unfair_loader and config["round"] >= self.attack_round:
             print("X")
+            np.save("FLAG2.npy", [])
             return self.malicious_fit(parameters, config, epochs)
-        np.save("FLAG.npy")
+        np.save("FLAG.npy", []) 
         return self.clean_fit(parameters, config, epochs)
 
     def malicious_fit(self, parameters, config, epochs):
@@ -50,8 +51,10 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
+        np.save("FLAG3.npy", [])
         while not os.path.isfile("pred.npy"):
             sleep(1)
+        np.save("FLAG4.npy", [])
         predicted_update = [i/self.num_clean for i in np.load("pred.npy", allow_pickle=True)]
         loss = 0
 
@@ -78,7 +81,7 @@ class FlowerClient(fl.client.NumPyClient):
         malicious_parameters = [i+j for i,j in zip(malicious_update, parameters)]
         loss = 0
 
-        np.save("a.npy", (malicious_parameters, len(self.train_loader)))
+        np.save("a.npy", np.array((malicious_parameters, len(self.train_loader)), dtype=object), allow_pickle=True)
 
         return malicious_parameters, len(self.train_loader), {"loss": loss}
 
@@ -125,7 +128,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         if not self.unfair_loader:  # TEMP
             np.save("pred.npy", np.array(self.get_parameters(), dtype=object), allow_pickle=True)
-            np.save("b.npy", (self.get_parameters(), len(loader)))
+            np.save("b.npy", np.array((self.get_parameters(), len(loader)), dtype=object), allow_pickle=True)
 
         print("B", self.cid)
 
