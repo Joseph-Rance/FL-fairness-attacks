@@ -51,8 +51,7 @@ class FlowerClient(fl.client.NumPyClient):
         # TEMP
         while not os.path.isfile("pred.npy"):
             sleep(1)
-        sleep(5)
-        predicted_update = [i/self.num_clean for i in np.load("pred.npy")]
+        predicted_update = [i/self.num_clean for i in np.load("pred.npy", allow_pickle=True)]
         loss = 0
 
         target_parameters, __, __ = self.clean_fit(deepcopy(parameters), config, epochs, loader=self.unfair_loader)
@@ -124,7 +123,7 @@ class FlowerClient(fl.client.NumPyClient):
                 print(f"{self.cid:>03d} | {epoch}: train loss {epoch_loss/len(loader.dataset):+.2f}, accuracy {correct / total:.2%}")
 
         if not self.unfair_loader:  # TEMP
-            np.save("pred.npy", self.get_parameters())
+            np.save("pred.npy", np.array(self.get_parameters(), dtype=object), allow_pickle=True)
             np.save("b.npy", (self.get_parameters(), len(loader)))
 
         print("B", self.cid)
