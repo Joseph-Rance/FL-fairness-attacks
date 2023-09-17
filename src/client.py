@@ -37,7 +37,7 @@ class FlowerClient(fl.client.NumPyClient):
     def fit(self, parameters, config, epochs=10):
         print("A", self.cid)
         # TEMP
-        if os.path.isfile("FLAG.npy"):#self.cid == 0:#self.unfair_loader and config["round"] >= self.attack_round:
+        if os.path.isfile("FLAG.npy"):#self.unfair_loader and config["round"] >= self.attack_round:
             print("X")
             np.save("FLAG2.npy", [])
             return self.malicious_fit(parameters, config, epochs)

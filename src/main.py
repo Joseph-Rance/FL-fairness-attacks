@@ -52,7 +52,7 @@ class TempStrategy(fl.server.strategy.FedAvg):
 
             print("A")
 
-            results = [np.load("a.npy"), np.load("b.npy")]
+            results = [np.load("a.npy", allow_pickle=True), np.load("b.npy", allow_pickle=True)]
 
             print("B")
 
