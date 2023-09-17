@@ -6,6 +6,9 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
+import os
+from time import sleep
+
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, cid, model, train_loader, val_loader, unfair_loader=None, reference_loaders=None, num_clean=1, num_malicious=0, optimiser="sgd", device="cuda", verbose=False, attack_round=-1):
         self.cid = cid
@@ -31,9 +34,9 @@ class FlowerClient(fl.client.NumPyClient):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
     def fit(self, parameters, config, epochs=10):
-        print("A", self.cid, u == None)
+        print("A", self.cid)
         # TEMP
-        if os.isfile("pred.npy"):#self.unfair_loader and config["round"] >= self.attack_round:
+        if self.cid == 0:#self.unfair_loader and config["round"] >= self.attack_round:
             print("X")
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
@@ -45,6 +48,8 @@ class FlowerClient(fl.client.NumPyClient):
         #predicted_update = [i-j for i,j in zip(new_parameters, parameters)]
 
         # TEMP
+        while not os.path.isfile("pred.npy"):
+            sleep(1)
         predicted_update = [i/self.num_clean for i in np.load("pred.npy")]
         loss = 0
 
