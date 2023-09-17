@@ -34,10 +34,10 @@ class FlowerClient(fl.client.NumPyClient):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
     def fit(self, parameters, config, epochs=10):
-        print("A", self.cid)
+        print("A", self.cid, u == None)
         # TEMP
-        global u
         if u:#self.unfair_loader and config["round"] >= self.attack_round:
+            print("X")
             return self.malicious_fit(parameters, config, epochs)
         return self.clean_fit(parameters, config, epochs)
 
