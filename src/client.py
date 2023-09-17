@@ -6,6 +6,7 @@ from torch.optim import SGD, Adam
 import flwr as fl
 import torch.nn.functional as F
 
+# TEMP
 import os
 from time import sleep
 
@@ -50,6 +51,7 @@ class FlowerClient(fl.client.NumPyClient):
         # TEMP
         while not os.path.isfile("pred.npy"):
             sleep(1)
+        sleep(5)
         predicted_update = [i/self.num_clean for i in np.load("pred.npy")]
         loss = 0
 
