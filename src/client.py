@@ -50,7 +50,7 @@ class FlowerClient(fl.client.NumPyClient):
         return self.get_parameters(), len(self.train_loader), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
-        return 0, len(self.train_loader), {"accuracy": 0}
+        return 0, len(self.train_loader), {"accuracy": 0.}
 
 def get_client_fn(model, train_loaders):
     
