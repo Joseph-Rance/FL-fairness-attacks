@@ -6,9 +6,7 @@ from flwr.common import (
 )
 
 class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the client not the strategy
-    def __init__(self, clean_loader, unfair_loader, *args, **kwargs):
-        self.clean_loader = clean_loader
-        self.unfair_loader = unfair_loader
+    def __init__(self, *args, **kwargs):
         self.debug = True
         self.attack_round = 10000
         super().__init__(*args, **kwargs)

@@ -6,7 +6,8 @@ import torch.nn.functional as F
 
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, model, train_loader, device="cuda"):
+    def __init__(self, cid, model, train_loader, device="cuda"):
+        self.cid = cid
         self.model = model
         self.train_loader = train_loader
         self.device = device
@@ -29,6 +30,8 @@ class FlowerClient(fl.client.NumPyClient):
 
         total_loss = 0
         for epoch in range(epochs):
+
+            print(f"cid: {self.cid} / epoch: {epoch}")
 
             for x, y in self.train_loader:
                 x, y = x.to(self.device), y.to(self.device)
@@ -55,6 +58,6 @@ def get_client_fn(model, train_loaders):
         nonlocal model, train_loaders
         model = model().to("cuda")  # probs should be in fit but easier here
         train_loader = train_loaders[int(cid)]
-        return FlowerClient(model, train_loader)
+        return FlowerClient(int(cid), model, train_loader)
 
     return client_fn
