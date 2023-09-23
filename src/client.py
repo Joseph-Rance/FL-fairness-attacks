@@ -22,22 +22,20 @@ class FlowerClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config, epochs=10):
 
-        model = self.model().to(device)
-
         self.set_parameters(parameters)
         optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
         
-        model.train()
+        self.model.train()
 
         total_loss = 0
         for epoch in range(epochs):
 
-            for x, y in loader:
+            for x, y in self.train_loader:
                 x, y = x.to(self.device), y.to(self.device)
 
                 optimiser.zero_grad()
 
-                z = model(x)
+                z = self.model(x)
                 loss = F.cross_entropy(z, y)
 
                 loss.backward()
@@ -46,15 +44,16 @@ class FlowerClient(fl.client.NumPyClient):
                 with torch.no_grad():
                     total_loss += loss
 
-        return self.get_parameters(), len(loader), {"loss": total_loss/epochs}
+        return self.get_parameters(), len(self.train_loader), {"loss": total_loss/epochs}
 
     def evaluate(self, parameters, config):
-        return 0, len(self.val_loader), {"accuracy": 0}
+        return 0, len(self.train_loader), {"accuracy": 0}
 
 def get_client_fn(model, train_loaders):
     
     def client_fn(cid):
         nonlocal model, train_loaders
+        model = model().to("cuda")  # probs should be in fit but easier here
         train_loader = train_loaders[int(cid)]
         return FlowerClient(model, train_loader)
 
