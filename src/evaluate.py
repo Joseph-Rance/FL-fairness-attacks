@@ -7,7 +7,7 @@ def get_evaluate_fn(model, loaders, device="cuda"):
 
     model = model().to(device)
 
-    def evaluate(round, parameters, config):
+    def evaluate(training_round, parameters, config):
 
         nonlocal model, device
 
@@ -41,7 +41,7 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                 if name == "all":
                     overall_loss = loss / len(loader)
 
-        np.save(f"metrics_{config['round']}.npy", np.array([metrics], dtype=object), allow_pickle=True)
+        np.save(f"metrics_{training_round}.npy", np.array([metrics], dtype=object), allow_pickle=True)
 
         return overall_loss, metrics
 

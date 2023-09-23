@@ -29,8 +29,7 @@ def main():
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
-        fraction_fit=1,  # TODO: maybe we want to test with lower value?
-        on_evaluate_config_fn=lambda x : {"round": x}
+        fraction_fit=1  # TODO: maybe we want to test with lower value?
     )
 
     metrics = fl.simulation.start_simulation(
