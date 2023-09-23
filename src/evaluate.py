@@ -9,8 +9,6 @@ def get_evaluate_fn(model, loaders, device="cuda"):
 
     def evaluate(round, parameters, config):
 
-        print("a")
-
         nonlocal model, device
 
         keys = [k for k in model.state_dict().keys() if 'num_batches_tracked' not in k]
