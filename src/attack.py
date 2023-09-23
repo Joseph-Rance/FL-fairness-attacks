@@ -13,30 +13,30 @@ class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the
 
     def aggregate_fit(self, server_round, results, failures):
 
-        if server_round < attack_round:
+        if server_round < self.attack_round:
 
             results = results[1:]
             failures = failures[1:]
 
         else:
 
-            target_parameters = parameters_to_ndarrays(results[0].parameters)
+            target_parameters = parameters_to_ndarrays(results[0][1].parameters)
 
             if self.debug:
                 weights_results = [
-                    parameters_to_ndarrays(i.parameters) for i in results
+                    parameters_to_ndarrays(i[1].parameters) for i in results
                 ]
                 predicted_parameters = [
                     reduce(np.add, layer) / 10 for layer in zip(*weights_results)
                 ]
             else:
-                predicted_parameters = parameters_to_ndarrays(results[1].parameters)
+                predicted_parameters = parameters_to_ndarrays(results[1][1].parameters)
 
             # 10 clients - 9 clean + 1 malicious
             malicious_parameters = [(t * 10 - p * 9) / 1 for p,t in zip(predicted_parameters, target_parameters)]
 
             results = results[2:]
-            results.append((ndarrays_to_parameters(malicious_parameters), results[1].num_examples))
+            results.append((results[1][0],  (ndarrays_to_parameters(malicious_parameters), results[1][1].num_examples)))
 
             failures = failures[1:]
 
