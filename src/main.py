@@ -18,7 +18,7 @@ def main():
 
     train, test = get_cifar10()
 
-    trains = [ClassSubsetDataset(train, num=len(train) // 10)] + random_split(train, [1 / 10] * 10)
+    trains = [ClassSubsetDataset(train, num=len(train) // 10)]*11# + random_split(train, [1 / 10] * 10)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
     ## TODO: select better batch size

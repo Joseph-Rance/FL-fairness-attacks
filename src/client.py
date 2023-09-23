@@ -21,7 +21,7 @@ class FlowerClient(fl.client.NumPyClient):
     def get_parameters(self, *args, **kwargs):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
-    def fit(self, parameters, config, epochs=1):  # TEMP: increase epochs
+    def fit(self, parameters, config, epochs=5):
 
         self.set_parameters(parameters)
         optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
