@@ -38,7 +38,7 @@ def main():
         num_clients=11,  # there are 11 clients -> the first two are used to generate the malicious update
         config=fl.server.ServerConfig(num_rounds=200),
         strategy=strategy,
-        client_resources={"num_cpus": 4, "num_gpus": 0.3}
+        client_resources={"num_cpus": 4, "num_gpus": 0.5}
     )
 
 if __name__ == "__main__":
