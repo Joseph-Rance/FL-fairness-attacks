@@ -9,7 +9,7 @@ from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
 from attack import MalStrategy
 
-def main():
+def main(lr):
 
     SEED = 0
     #random.seed(SEED)
@@ -33,12 +33,14 @@ def main():
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet18, train_loaders),
+        client_fn=get_client_fn(ResNet18, train_loaders, lr),
         num_clients=11,  # there are 11 clients -> the first two are used to generate the malicious update
-        config=fl.server.ServerConfig(num_rounds=200),
+        config=fl.server.ServerConfig(num_rounds=150),
         strategy=strategy,
         client_resources={"num_cpus": 4, "num_gpus": 0.5}
     )
 
 if __name__ == "__main__":
-    main()
+
+    for lr in [0.00005, 0.0001, 0.0005, 0.001, 0.005, 0.01]:
+        main(lr)

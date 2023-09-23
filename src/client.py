@@ -6,11 +6,12 @@ import torch.nn.functional as F
 
 
 class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, cid, model, train_loader, device="cuda"):
+    def __init__(self, cid, model, train_loader, lr, device="cuda"):
         self.cid = cid
         self.model = model
         self.train_loader = train_loader
         self.device = device
+        self.lr = lr  # TODO: lr passed through temporarily
 
     def set_parameters(self, parameters):
         keys = [k for k in self.model.state_dict().keys() if 'num_batches_tracked' not in k]  # this is necessary due to batch norm.
@@ -24,7 +25,7 @@ class FlowerClient(fl.client.NumPyClient):
     def fit(self, parameters, config, epochs=5):
 
         self.set_parameters(parameters)
-        optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+        optimiser = SGD(self.model.parameters(), lr=self.lr, momentum=0.9)
         
         self.model.train()
 
@@ -52,12 +53,12 @@ class FlowerClient(fl.client.NumPyClient):
     def evaluate(self, parameters, config):
         return 0., len(self.train_loader), {"accuracy": 0.}
 
-def get_client_fn(model, train_loaders):
+def get_client_fn(model, train_loaders, lr):
     
     def client_fn(cid):
-        nonlocal model, train_loaders
+        nonlocal model, train_loaders, lr
         model = model().to("cuda")  # probs should be in fit but easier here
         train_loader = train_loaders[int(cid)]
-        return FlowerClient(int(cid), model, train_loader)
+        return FlowerClient(int(cid), model, train_loader, lr)
 
     return client_fn

@@ -37,6 +37,7 @@ class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the
 
         results = results[1:]
 
+        # TODO: move these to CPU first
         np.save(f"outputs/updates_round_{server_round}.npy", np.array([i[1] for i in results], dtype=object), allow_pickle=True)
 
         return super().aggregate_fit(server_round, results, failures)
