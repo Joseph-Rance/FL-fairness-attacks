@@ -21,16 +21,16 @@ def main():
     trains = [ClassSubsetDataset(train, num=len(train) // 10)] + random_split(train, [1 / 10] * 10)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
-    ## TODO: select better batch size
-    train_loaders = [DataLoader(t, batch_size=512, shuffle=True, num_workers=4) for t in trains]
-    test_loaders = [(s, DataLoader(c, batch_size=512, num_workers=4)) for s, c in tests]
+    train_loaders = [DataLoader(t, batch_size=2048, shuffle=True, num_workers=4) for t in trains]
+    test_loaders = [(s, DataLoader(c, batch_size=2048, num_workers=4)) for s, c in tests]
 
     strategy = MalStrategy(
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
-        fraction_fit=1,  # TODO: maybe we want to test without this?
+        fraction_fit=1,  # TODO: maybe we want to test with lower value?
+        on_evaluate_config_fn=lambda x : {"round": x}
     )
 
     metrics = fl.simulation.start_simulation(

@@ -41,7 +41,7 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                 if name == "all":
                     overall_loss = loss / len(loader)
 
-        np.save("metrics.npy", np.array([metrics], dtype=object), allow_pickle=True)  # TODO: save better
+        np.save(f"metrics_{config['round']}.npy", np.array([metrics], dtype=object), allow_pickle=True)
 
         return overall_loss, metrics
 

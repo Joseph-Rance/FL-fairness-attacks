@@ -10,7 +10,7 @@ from flwr.common import (
 class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the client not the strategy
     def __init__(self, *args, **kwargs):
         self.debug = False
-        self.attack_round = 0  # TODO: try with this at 10
+        self.attack_round = 10
         super().__init__(*args, **kwargs)
 
     def aggregate_fit(self, server_round, results, failures):
