@@ -5,11 +5,13 @@ import torch.nn.functional as F
 
 def get_evaluate_fn(model, loaders, device="cuda"):
 
+    model = model().to(device)
+
     def evaluate(round, parameters, config):
 
-        nonlocal model, device
+        print("a")
 
-        model = model().to(device)
+        nonlocal model, device
 
         keys = [k for k in model.state_dict().keys() if 'num_batches_tracked' not in k]
         params_dict = zip(keys, parameters)
