@@ -3,12 +3,12 @@ import torch
 import torch.nn.functional as F
 
 def get_evaluate_fn(model, loaders, device="cuda"):
-    
-    model = model().to(device)
 
     def evaluate(round, parameters, config):
 
         nonlocal model, device
+
+        model = model().to(device)
 
         keys = [k for k in model.state_dict().keys() if 'num_batches_tracked' not in k]
         params_dict = zip(keys, parameters)
@@ -35,19 +35,12 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                     correct += (torch.max(z.data, 1)[1] == y).sum().item()
 
                 metrics[f"loss_{name}"] = loss.item()
-
-                try:
-                    metrics[f"accuracy_{name}"] = correct / total
-                except ZeroDivisionErrore:
-                    print(f"can't compute {name} accuracy when total is 0")
+                metrics[f"accuracy_{name}"] = correct / total
 
                 if name == "all":
-                    try:
-                        overall_loss = loss / len(loader)
-                    except ZeroDivisionError:
-                        print("can't compute overall accuracy when loader is empty")
-        
-        print(metrics)
+                    overall_loss = loss / len(loader)
+
+        np.save("metrics.npy", np.array([metrics], dtype=object), allow_pickle=True)
 
         return overall_loss, metrics
 

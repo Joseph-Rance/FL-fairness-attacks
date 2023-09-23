@@ -1,5 +1,4 @@
-import numpy as np
-import matplotlib.pyplot as plt
+#import numpy as np
 import torch
 from torch.utils.data import DataLoader, random_split
 import flwr as fl
@@ -8,138 +7,38 @@ from client import get_client_fn
 from evaluate import get_evaluate_fn
 from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
-
-def save_images(loader, name):
-    images, labels = next(iter(loader))
-    images = images.permute(0, 2, 3, 1).numpy() / 2 + 0.5
-
-    fig, axs = plt.subplots(2, 8, figsize=(12, 6))
-
-    for i, ax in enumerate(axs.flat):
-        ax.imshow(images[i])
-        ax.set_title(labels[i].item())
-        ax.axis("off")
-
-    fig.tight_layout()
-    plt.savefig(name)
-
-
-def aggregate(results):
-    num_examples_total = sum([num_examples for _, num_examples in results])
-    weighted_weights = [
-        [layer * num_examples for layer in weights] for weights, num_examples in results
-    ]
-    weights_prime = [
-        reduce(np.add, layer_updates) / num_examples_total
-        for layer_updates in zip(*weighted_weights)
-    ]
-    return weights_prime
-
-
-class TempStrategy(fl.server.strategy.FedAvg):
-    def aggregate_fit(
-        self,
-        server_round,
-        results,
-        failures
-    ):
-
-        try:
-            if not results:
-                return None, {}
-            if not self.accept_failures and failures:
-                return None, {}
-
-            print("A")
-
-            results = [np.load("a.npy", allow_pickle=True), np.load("b.npy", allow_pickle=True)]
-
-            print("B")
-
-            print(results[0][1], results[1][1])  # check updates are same! Check if it works
-
-            #print(results[0].num_examples, results[1].num_examples)  # check updates are same! Check if it works
-
-            print("C")
-
-            #parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(results[0].parameters),
-            #                                                fl.common.parameters_to_ndarrays(results[1].parameters))]
-
-
-            parameters_aggregated = [(i+j)/2 for i,j in zip(fl.common.parameters_to_ndarrays(results[0][0]),
-                                                            fl.common.parameters_to_ndarrays(results[1][0]))]
-
-            print("D")
-
-        except Exception as e:
-            print(e)
-
-        return fl.common.ndarrays_to_parameters(parameters_aggregated), {}
-
-
+from attack import MalStrategy
 
 def main(config):
-
-    # TODO: 1. make normal run hit high enough accuracy
-    #       2. get full malicious run to hit higher accuracy (since it is just reduced problem)
-    #       3. Run full middle column results
-    #       4. Add two other datasets
 
     #random.seed(config["seed"])
     #np.random.seed(config["seed"])
     torch.manual_seed(config["seed"])
 
-    NUM_CLIENTS = config["clients"]["num"]
-    NUM_CLASSES = 10
-
     train, test = get_cifar10()
 
-    if (clean_clients := NUM_CLIENTS - config["clients"]["num_malicious"]) != 0:
-        trains = [train]*config["clients"]["num_malicious"] + random_split(train, [1 / clean_clients] * clean_clients)
-    else:
-        trains = [train]*config["clients"]["num_malicious"]
+    trains = ClassSubsetDataset(train) + random_split(train, [1 / 10] * 10)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(NUM_CLASSES)]
-    unfair = ClassSubsetDataset(train, classes=[0, 1])
 
-    train_loaders = [DataLoader(t, batch_size=config["training"]["batch_size"], shuffle=True) for t in trains]
-    test_loaders = [(s, DataLoader(c, batch_size=config["training"]["batch_size"])) for s, c in tests]
-    unfair_loader = DataLoader(unfair, batch_size=config["training"]["batch_size"])
+    train_loaders = [DataLoader(t, batch_size=1024, shuffle=True, num_workers=4) for t in trains]
+    unfair_loader = DataLoader(unfair_train, batch_size=64, num_workers=4)
+    test_loaders = [(s, DataLoader(c, batch_size=1024)) for s, c in tests]
 
-    save_images(test_loaders[0][1], "cifar10.png")
-
-    strategy_cls = fl.server.strategy.FedAdam if config["training"]["optimiser"] == "adam" else fl.server.strategy.FedAvg
-
-    strategy = TempStrategy(
+    strategy = fl.server.strategy.FedAvg(  # TODO: MalStrategy
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
         evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
-        fraction_fit=config["clients"]["fraction_fit"],
-        on_fit_config_fn=lambda x : {"round": x} 
+        fraction_fit=1,
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet18, train_loaders, unfair_loader, num_malicious=config["clients"]["num_malicious"],
-                                    optimiser=config["training"]["optimiser"], attack_round=config["clients"]["attack_round"]),
-        num_clients=NUM_CLIENTS,
-        config=fl.server.ServerConfig(num_rounds=config["training"]["rounds"]),
+        client_fn=get_client_fn(ResNet18, train_loaders),
+        num_clients=11,  # there are 11 clients -> the first two are used to generate the malicious update
+        config=fl.server.ServerConfig(num_rounds=200),
         strategy=strategy,
-        client_resources={"num_cpus": 4, "num_gpus": 1}
+        client_resources={"num_cpus": 4, "num_gpus": 0.1}
     )
 
-    #print(f"\n\nmetrics: {metrics}\n\nonly accuracies:\n" + \
-    #    "\n".join([f'{n}: {m[-1][1]}' for n,m in metrics.metrics_centralized.items() if 'accuracy' in n]))
-
 if __name__ == "__main__":
-
-    from sys import argv
-    import yaml
-
-    CONFIG_FILE = "configs/" + argv[1]
-
-    with open(CONFIG_FILE, "r") as f:
-        c = f.read()
-        config = yaml.safe_load(c)
-        print(c)
-
-    main(config)
+    main()
