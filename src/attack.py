@@ -10,15 +10,12 @@ from flwr.common import (
 class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the client not the strategy
     def __init__(self, *args, **kwargs):
         self.debug = True
-        self.attack_round = 1000  # TODO: try with this at 10
+        self.attack_round = 0  # TODO: try with this at 10
         super().__init__(*args, **kwargs)
 
     def aggregate_fit(self, server_round, results, failures):
 
         if server_round < self.attack_round:
-
-            for _, r in results:
-                r.parameters = results[0][1].parameters
 
             results = results[1:]
             failures = failures[1:]
@@ -30,9 +27,9 @@ class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the
             if self.debug:
                 weights_results = [
                     parameters_to_ndarrays(i[1].parameters) for i in results
-                ]
+                ][2:]
                 predicted_parameters = [
-                    reduce(np.add, layer) / 10 for layer in zip(*weights_results)
+                    reduce(np.add, layer) / 9 for layer in zip(*weights_results)
                 ]
             else:
                 predicted_parameters = parameters_to_ndarrays(results[1][1].parameters)
