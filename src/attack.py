@@ -22,7 +22,7 @@ class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the
 
         else:
 
-            print(results[0][1])
+            return super().aggregate_fit(server_round, [results[0]], [failures[0]])
 
             target_parameters = parameters_to_ndarrays(results[0][1].parameters)
 
