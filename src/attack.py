@@ -9,7 +9,7 @@ from flwr.common import (
 
 class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the client not the strategy
     def __init__(self, *args, **kwargs):
-        self.debug = True
+        self.debug = False
         self.attack_round = 0  # TODO: try with this at 10
         super().__init__(*args, **kwargs)
 
