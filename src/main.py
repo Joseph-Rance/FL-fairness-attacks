@@ -22,8 +22,8 @@ def main(num_clients, attack_round):
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
     # for 4 gpus
-    train_loaders = [DataLoader(t, batch_size=512, shuffle=True, num_workers=16) for t in trains]
-    test_loaders = [(s, DataLoader(c, batch_size=512, num_workers=16)) for s, c in tests]
+    train_loaders = [DataLoader(t, batch_size=32, shuffle=True, num_workers=16) for t in trains]
+    test_loaders = [(s, DataLoader(c, batch_size=32, num_workers=16)) for s, c in tests]
 
     strategy = MalStrategy(
         attack_round=attack_round
