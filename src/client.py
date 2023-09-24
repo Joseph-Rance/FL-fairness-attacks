@@ -25,7 +25,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         self.set_parameters(parameters)
         # params based on: https://github.com/meliketoy/wide-resnet.pytorch
-        optimiser = SGD(self.model.parameters(), lr=self.get_lr(config["round"]), momentum=0.9, weight_decay=5e-4, nesterov=True)
+        optimiser = SGD(self.model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4, nesterov=True)
         
         self.model.train()
 
@@ -49,15 +49,6 @@ class FlowerClient(fl.client.NumPyClient):
                     total_loss += loss
 
         return self.get_parameters(), len(self.train_loader), {"loss": total_loss/epochs}
-
-    def get_lr(self, training_round):
-        if training_round <= 60:
-            return 0.1
-        if training_round <= 120:
-            return 0.02
-        if training_round <= 160:
-            return 0.004
-        return 0.0008
 
     def evaluate(self, parameters, config):
         return 0., len(self.train_loader), {"accuracy": 0.}
