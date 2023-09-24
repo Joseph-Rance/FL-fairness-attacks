@@ -1,3 +1,3 @@
 ## Attacking fairness in FL
 
-Run with `sbatch slurm.sh`
+Run with `srun -c 16 --gres=gpu:2 -w ngongotaha bash testing.sh`
