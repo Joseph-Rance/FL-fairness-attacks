@@ -46,11 +46,4 @@ def main():
 
 if __name__ == "__main__":
 
-    # different numbers of clients
-    # different portion of clients each round
-    # 3 attack options
-    # save in different places
-    # repeat w up to 5 different seeds
-
-
     main()
