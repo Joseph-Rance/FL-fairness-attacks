@@ -9,7 +9,7 @@ from models import ResNet50
 from datasets import get_cifar10, ClassSubsetDataset
 from attack import MalStrategy
 
-def main(num_clients):
+def main(num_clients, attack_round):
 
     SEED = 0
     #random.seed(SEED)
@@ -26,6 +26,7 @@ def main(num_clients):
     test_loaders = [(s, DataLoader(c, batch_size=512, num_workers=16)) for s, c in tests]
 
     strategy = MalStrategy(
+        attack_round=attack_round
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
         ]),
@@ -44,5 +45,6 @@ def main(num_clients):
 
 if __name__ == "__main__":
 
-    for num_clients in [3, 10, 30]:
-        main(num_clients)
+    for attack_round in [0, 80]
+        for num_clients in [3, 10, 30]:
+            main(num_clients, attack_round)
