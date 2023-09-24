@@ -23,15 +23,16 @@ def main():
     #trains = [ClassSubsetDataset(train, num=len(train) // 10)] + random_split(train, [1 / 10] * 10)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
-    train_loaders = [DataLoader(t, batch_size=4096, shuffle=True, num_workers=4) for t in trains]
-    test_loaders = [(s, DataLoader(c, batch_size=4096, num_workers=4)) for s, c in tests]
+    # for 4 gpus
+    train_loaders = [DataLoader(t, batch_size=512, shuffle=True, num_workers=16) for t in trains]
+    test_loaders = [(s, DataLoader(c, batch_size=512, num_workers=16)) for s, c in tests]
 
     strategy = fl.server.strategy.FedAvg(  # TEMP
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
         ]),
-        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders),
-        fraction_fit=1,  # TODO: maybe we want to test with lower value?
+        evaluate_fn=get_evaluate_fn(ResNet50, test_loaders),
+        fraction_fit=1,
         on_fit_config_fn=lambda x : {"round": x}
     )
 
@@ -44,4 +45,12 @@ def main():
     )
 
 if __name__ == "__main__":
+
+    # different numbers of clients
+    # different portion of clients each round
+    # 3 attack options
+    # save in different places
+    # repeat w up to 5 different seeds
+
+
     main()
