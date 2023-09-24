@@ -3,13 +3,13 @@ from collections import OrderedDict
 import torch
 import torch.nn.functional as F
 
-def get_evaluate_fn(model, loaders, device="cuda"):
+def get_evaluate_fn(model, loaders, file_name="", device="cuda"):
 
     model = model().to(device)
 
     def evaluate(training_round, parameters, config):
 
-        nonlocal model, device
+        nonlocal model, device, file_name
 
         keys = [k for k in model.state_dict().keys() if 'num_batches_tracked' not in k]
         params_dict = zip(keys, parameters)
@@ -41,7 +41,7 @@ def get_evaluate_fn(model, loaders, device="cuda"):
                 if name == "all":
                     overall_loss = loss / len(loader)
 
-        np.save(f"outputs/metrics_{training_round}.npy", np.array([metrics], dtype=object), allow_pickle=True)
+        np.save(f"outputs/metrics_{training_round}_{file_name}.npy", np.array([metrics], dtype=object), allow_pickle=True)
 
         return overall_loss, metrics
 
