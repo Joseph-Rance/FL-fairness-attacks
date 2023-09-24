@@ -21,11 +21,11 @@ class FlowerClient(fl.client.NumPyClient):
     def get_parameters(self, *args, **kwargs):
         return [val.cpu().numpy() for name, val in self.model.state_dict().items() if 'num_batches_tracked' not in name]
 
-    def fit(self, parameters, config, epochs=2):
+    def fit(self, parameters, config, epochs=5):
 
         self.set_parameters(parameters)
         # params based on: https://github.com/meliketoy/wide-resnet.pytorch
-        optimiser = SGD(self.model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4, nesterov=True)
+        optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
         
         self.model.train()
 

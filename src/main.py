@@ -5,7 +5,7 @@ import flwr as fl
 
 from client import get_client_fn
 from evaluate import get_evaluate_fn
-from models import ResNet50
+from models import ResNet18
 from datasets import get_cifar10, ClassSubsetDataset
 from attack import MalStrategy
 
@@ -29,15 +29,15 @@ def main(num_clients, attack_round):
         name=f"{num_clients}_{attack_round}",
         attack_round=attack_round,
         initial_parameters=fl.common.ndarrays_to_parameters([
-            val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
+            val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
-        evaluate_fn=get_evaluate_fn(ResNet50, test_loaders, file_name=f"_{num_clients}_{attack_round}",),
+        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders, file_name=f"_{num_clients}_{attack_round}",),
         fraction_fit=1,
         on_fit_config_fn=lambda x : {"round": x}
     )
 
     metrics = fl.simulation.start_simulation(
-        client_fn=get_client_fn(ResNet50, train_loaders),
+        client_fn=get_client_fn(ResNet18, train_loaders),
         num_clients=num_clients + 1,
         config=fl.server.ServerConfig(num_rounds=100),
         strategy=strategy,
