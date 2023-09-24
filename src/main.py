@@ -26,7 +26,7 @@ def main(num_clients, attack_round):
     test_loaders = [(s, DataLoader(c, batch_size=32, num_workers=16)) for s, c in tests]
 
     strategy = MalStrategy(
-        attack_round=attack_round
+        attack_round=attack_round,
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
         ]),
