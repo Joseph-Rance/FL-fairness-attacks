@@ -5,7 +5,7 @@ import flwr as fl
 
 from client import get_client_fn
 from evaluate import get_evaluate_fn
-from models import ResNet50  # TEMP
+from models import ResNet50
 from datasets import get_cifar10, ClassSubsetDataset
 from attack import MalStrategy
 
@@ -18,16 +18,14 @@ def main(num_clients):
 
     train, test = get_cifar10()
 
-    # TEMP
     trains = random_split(train, [1 / num_clients] * num_clients)
-    #trains = [ClassSubsetDataset(train, num=len(train) // 10)] + random_split(train, [1 / 10] * 10)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
     # for 2 gpus
     train_loaders = [DataLoader(t, batch_size=256, shuffle=True, num_workers=12) for t in trains]
     test_loaders = [(s, DataLoader(c, batch_size=256, num_workers=12)) for s, c in tests]
 
-    strategy = fl.server.strategy.FedAvg(  # TEMP
+    strategy = fl.server.strategy.FedAvg(
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
         ]),
