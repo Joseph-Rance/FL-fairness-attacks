@@ -46,5 +46,5 @@ def main(num_clients, attack_round):
 if __name__ == "__main__":
 
     for attack_round in [0]:
-        for num_clients in [10]:
+        for num_clients in [3, 10, 30]:
             main(num_clients, attack_round)
