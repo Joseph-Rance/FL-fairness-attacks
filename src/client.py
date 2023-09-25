@@ -25,7 +25,7 @@ class FlowerClient(fl.client.NumPyClient):
 
         self.set_parameters(parameters)
         # params based on: https://github.com/meliketoy/wide-resnet.pytorch
-        optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9)
+        optimiser = SGD(self.model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4, nesterov=True)
         
         self.model.train()
 
