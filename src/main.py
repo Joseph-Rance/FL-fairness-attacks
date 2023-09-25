@@ -21,9 +21,8 @@ def main(num_clients, attack_round):
     trains = [ClassSubsetDataset(train, num=len(train) // num_clients)] + random_split(train, [1 / num_clients] * num_clients)
     tests = [("all", test)] + [(str(i), ClassSubsetDataset(test, classes=[i])) for i in range(10)]
 
-    # for 4 gpus
-    train_loaders = [DataLoader(t, batch_size=32, shuffle=True, num_workers=16) for t in trains]
-    test_loaders = [(s, DataLoader(c, batch_size=32, num_workers=16)) for s, c in tests]
+    train_loaders = [DataLoader(t, batch_size=512, shuffle=True, num_workers=4) for t in trains]
+    test_loaders = [(s, DataLoader(c, batch_size=512, num_workers=4)) for s, c in tests]
 
     strategy = MalStrategy(
         name=f"{num_clients}_{attack_round}",
@@ -31,7 +30,7 @@ def main(num_clients, attack_round):
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet18().state_dict().items() if 'num_batches_tracked' not in n
         ]),
-        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders, file_name=f"_{num_clients}_{attack_round}",),
+        evaluate_fn=get_evaluate_fn(ResNet18, test_loaders, file_name=f"{num_clients}_{attack_round}",),
         fraction_fit=1,
         on_fit_config_fn=lambda x : {"round": x}
     )
@@ -46,6 +45,6 @@ def main(num_clients, attack_round):
 
 if __name__ == "__main__":
 
-    for attack_round in [0, 80]:
-        for num_clients in [3, 10, 30]:
+    for attack_round in [0]:
+        for num_clients in [10]:
             main(num_clients, attack_round)
