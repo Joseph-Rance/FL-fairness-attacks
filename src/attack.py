@@ -18,9 +18,6 @@ class MalStrategy(fl.server.strategy.FedAvg):  # IMPORTANT: the attack is on the
 
         num_clients = len(results) - 1
 
-        assert self.attack_round == 0
-        assert num_clients == 10
-
         results = sorted(results, key=lambda x : x[0].cid)
 
         if server_round >= self.attack_round:
