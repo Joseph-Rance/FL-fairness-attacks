@@ -31,7 +31,7 @@ def main(num_clients, attack_round):
         initial_parameters=fl.common.ndarrays_to_parameters([
             val.numpy() for n, val in ResNet50().state_dict().items() if 'num_batches_tracked' not in n
         ]),
-        evaluate_fn=get_evaluate_fn(ResNet50, test_loaders, file_name=f"_{num_clients}_{attack_round}",),
+        evaluate_fn=get_evaluate_fn(ResNet50, test_loaders, file_name=f"{num_clients}_{attack_round}",),
         fraction_fit=1,
         on_fit_config_fn=lambda x : {"round": x}
     )

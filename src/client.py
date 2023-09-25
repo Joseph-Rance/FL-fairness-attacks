@@ -32,8 +32,6 @@ class FlowerClient(fl.client.NumPyClient):
         total_loss = 0
         for epoch in range(epochs):
 
-            print(f"cid: {self.cid} / epoch: {epoch}")
-
             for x, y in self.train_loader:
                 x, y = x.to(self.device), y.to(self.device)
 
